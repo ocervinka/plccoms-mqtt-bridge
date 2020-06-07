@@ -1,0 +1,13 @@
+### Gradle ###
+.gradle/
+build/
+
+### Gradle Wrapper ###
+# Make sure these are not ignored even e.g. start ignoring jar files later
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+out/
