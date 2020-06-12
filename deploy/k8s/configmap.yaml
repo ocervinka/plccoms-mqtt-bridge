@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: plccoms-mqtt-bridge2
+data:
+  config.yaml: |
+    plccoms:
+      host: plccoms
+      port: 5010
+
+    mqtt:
+      scheme: tcp
+      host: mosquitto
+      port: 1883
+      clientId: plccoms-mqtt-bridge
+
+    var-blacklist:
+      - "STATE_.+"
+      - ".+_ON"
+      - ".+_OFF"
+      - ".+_TRIG"
+
+      - "SYSTEM_24HOUR_OBSERVAITON_.+"
+      - "SYSTEM_AG.+"
+      - "USERBITS"
+      - "__.+"
+
+    var-mapping:
+      # binary inputs (closed / open)
+      # Note that many inputs (e.g. IN_1, IN_2) does not have unique names across all units (e.g. R0, R1) which will cause
+      # changes in these non-unique inputs will be sent to the same topic, however I don't care as these are not used.
+      - var: "INPUT_(?:R0|R1|R2|KITCHEN)_(.*)"
+        state-topic: "home/{1}/input"
+        state-function: OneToOn
+
+      # thermocouple (excludes those names starting with "IN_")
+      - var: "C_IT_0200I_((?!IN_).*)"
+        state-topic: "home/{1}/temp"
+        log-level: trace
+
+      # 230V dimmer output
+      - var: "DIMMER_R1_(.*)"
+        state-topic: "home/{1}/dimmer-get"
+        cmd-topic: "home/{1}/dimmer-set"
+
+      # 230V relay output switches
+      - var: "OUTPUT_(.*_SW\\d+)"
+        state-topic: "home/{1}/relay-button"
+
+      # 230V relay output (the regex includes switches outputs but they are already mapped by the earlier regex)
+      - var: "OUTPUT_(?:R0A|R0B|R1A|R1B|R2A|R2B)_(.*)"
+        state-topic: "home/{1}/relay-get"
+        state-function: OneToOn
+        cmd-topic: "home/{1}/relay-set"
+        cmd-function: OnToOne
+
+      # Switch LEDs
+      - var: "SW_(.*_(?:RED|GREEN)\\d)"
+        state-topic: "home/{1}/switch-led-get"
+        cmd-topic: "home/{1}/switch-led-set"
+
+      # Switch buttons
+      - var: "SW_(.*_(?:UP|DOWN)\\d)"
+        state-topic: "home/{1}/switch"
+
+      # Switch temperature sensor
+      - var: "SW_(.*)_TERM"
+        state-topic: "home/{1}/switch-temp"
+        log-level: trace

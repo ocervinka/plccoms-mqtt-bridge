@@ -124,8 +124,8 @@ port  | 5010          | PLCComS TCP port
 Field    | Default value  | Description
 ---------| ---------------|------------------------
 scheme   | tcp            | tcp or tls 
-host     | localhost      | PLCComS host name or IP
-port     | 1883 for tcp and 8883 fot tls | PLCComS TCP port
+host     | localhost      | MQTT broker host name or IP
+port     | 1883 for tcp and 8883 fot tls | MQTT TCP port
 clientId | MQTT client id | random UUID 
  
 #### var-blacklist:
@@ -150,3 +150,21 @@ log-level      | info           | Log4Jv2 log levels (info, debug, trace)
 ```bash
 ./gradlew clean runLocal
 ```
+
+### Build and run in container
+
+```bash
+./gradlew clean jibDockerBuild
+docker run --network host -v $(pwd)/deploy/docker/config.yaml:/etc/plccoms-mqtt-bridge/config.yaml ocervinka/plccoms-mqtt-bridge
+```
+
+If only the second command is called, a pre-build image will be pulled from
+public docker registry. 
+
+`plccoms-mqtt-bridge` needs to be configured
+(See [YAML configuration](#yaml-configuration)) to connect to to `PLCComS` and
+MQTT broker (e.g. [Mosquitto](https://mosquitto.org/)) both ideally running in
+containers. Some newer Teco PLC models have `PLCComS` integrated so there is
+no need to host the process outside of PLC.
+
+### TODO: Helm Chart
