@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plccoms-mqtt-bridge
+  labels:
+    app: plccoms-mqtt-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plccoms-mqtt-bridge
+  template:
+    metadata:
+      labels:
+        app: plccoms-mqtt-bridge
+    spec:
+      containers:
+        - name: plccoms-mqtt-bridge
+          image: ocervinka/plccoms-mqtt-bridge
+          volumeMounts:
+            - name: plccoms-mqtt-bridge
+              mountPath: "/etc/plccoms-mqtt-bridge/"
+              readOnly: true
+      volumes:
+        - name: plccoms-mqtt-bridge
+          configMap:
+            name: plccoms-mqtt-bridge
+            items:
+              - key: config.yaml
+                path: config.yaml
