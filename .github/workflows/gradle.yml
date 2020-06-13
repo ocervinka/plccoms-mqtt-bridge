@@ -26,5 +26,7 @@ jobs:
       run: ./gradlew build
     - name: Build Image
       run: ./gradlew clean jibDockerBuild
+    - name: Login to DockerHub Registry
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Publish Image
       run: ./gradlew clean jib
