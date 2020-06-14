@@ -1,9 +1,19 @@
+import java.util.regex.Pattern
+
 plugins {
     id 'java'
-    id "com.google.cloud.tools.jib" version "2.2.0"
+    id "com.google.cloud.tools.jib" version "2.4.0"
 }
 
-version 'latest'
+def getVersionTag = { ->
+    String cmd = "git describe --tag --always --long --dirty"
+    Process output = cmd.execute()
+    String gitRevision = output.text.trim()
+    return Pattern.compile('-dirty$').matcher(gitRevision).replaceAll(new Date().format("-yyyy-MM-dd'T'HH-mm-ss"))
+}
+
+version = getVersionTag()
+logger.lifecycle("Version Tag: {}", getVersionTag());
 
 repositories {
     mavenCentral()
@@ -27,10 +37,11 @@ jib {
         image = "openjdk@sha256:5e9391cb672d672f82f7a55b6f20c89b07d573759c8102fce7bd9e1fb06c9e9f" //11-jre
     }
     to {
-        image = "ocervinka/plccoms-mqtt-bridge"
+        image = "ocervinka/plccoms-mqtt-bridge:$version"
     }
     container {
         mainClass = project.ext.mainClass
+        environment = [VERSION_TAG: jib.to.image]
     }
 }
 
@@ -41,5 +52,6 @@ task runLocal(type: JavaExec) {
     main = project.ext.mainClass
     classpath = sourceSets.main.runtimeClasspath
     args "deploy/local/config.yaml"
-    systemProperty "prop1", "test1"
+    systemProperty "version.tag", "$version"
+    environment "VERSION_TAG", "$version"
 }

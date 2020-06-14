@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import java.awt.desktop.SystemSleepEvent;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -33,9 +34,12 @@ public class PlcMqttBridge {
 
 
     public static void main(String[] args) throws MqttException, IOException {
+        LOGGER.info("Starting plccoms-mqtt-bridge");
+        LOGGER.info("Version: {}", System.getenv("VERSION_TAG"));
         String configFile = args.length == 0 ? DEFAULT_CONFIG : args[0];
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         Config config = objectMapper.readValue(new FileReader(configFile), Config.class);
+        LOGGER.info("Configuration: {}", configFile);
         PlcMqttBridge plcMqttBridge = new PlcMqttBridge(config);
         plcMqttBridge.connect();
 
