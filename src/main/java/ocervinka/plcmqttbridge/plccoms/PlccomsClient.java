@@ -2,6 +2,7 @@ package ocervinka.plcmqttbridge.plccoms;
 
 import ocervinka.plcmqttbridge.telnet.TelnetClient;
 import ocervinka.plcmqttbridge.telnet.TelnetClientListener;
+import ocervinka.plcmqttbridge.VarMapping;
 import ocervinka.plcmqttbridge.config.VarMappingConfig;
 
 import org.apache.logging.log4j.LogManager;
