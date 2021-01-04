@@ -57,7 +57,7 @@ public class PlcMqttBridge {
     public PlcMqttBridge(Config config) {
         this.config = config;
         this.mqttClient = new Mqtt();
-        this.plccomsClient = new PlccomsClient(this::onList, this::onDiff);
+        this.plccomsClient = new PlccomsClient(this::onList, this::onDiff, varMappingsByVariable);
     }
 
     private void connect() throws MqttException {

@@ -17,6 +17,12 @@ public class Mqtt {
         client = new MqttClient(config.getUri(), config.clientId);
 
         MqttConnectOptions options = new MqttConnectOptions();
+        if (config.username != "") options.setUserName(config.username);
+        if (config.password != "") {
+            String passw = config.password;
+            char[] chPassw = passw.toCharArray();
+            options.setPassword(chPassw);
+        }
         options.setAutomaticReconnect(true);
         options.setCleanSession(true);
         options.setConnectionTimeout(10);

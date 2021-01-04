@@ -2,11 +2,14 @@ package ocervinka.plcmqttbridge.plccoms;
 
 import ocervinka.plcmqttbridge.telnet.TelnetClient;
 import ocervinka.plcmqttbridge.telnet.TelnetClientListener;
+import ocervinka.plcmqttbridge.config.VarMappingConfig;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -21,6 +24,7 @@ public class PlccomsClient {
 
     private final Function<Collection<PlccomsVar>, Collection<String>> listConsumer;
     private final Consumer<PlccomsDiff> diffConsumer;
+    private final Map<String, VarMapping> varMappingsByVariable;
 
     private final Collection<PlccomsVar> vars = new ArrayList<>();
 
@@ -28,6 +32,7 @@ public class PlccomsClient {
     public PlccomsClient(Function<Collection<PlccomsVar>, Collection<String>> listConsumer, Consumer<PlccomsDiff> diffConsumer) {
         this.listConsumer = listConsumer;
         this.diffConsumer = diffConsumer;
+        this.varMappingsByVariable = varMappingsByVariable;
     }
 
     public final void connect(PlccomsConfig config) {
@@ -70,9 +75,14 @@ public class PlccomsClient {
                     } else { // last line of LIST command has no arguments
                         listConsumer.apply(vars);
                         Collection<String> varNamesToSubscribe = listConsumer.apply(vars);
+                        VarMapping varMapping;
+                        String delta;
                         for (String varName : varNamesToSubscribe) {
-                            tc.write("EN:" + varName); // subscribe to changes
+                            varMapping = varMappingsByVariable.get(varName);
+                            delta = varMapping.config.stateTopicDelta == null ? "" : varMapping.config.stateTopicDelta.toPattern();
+                            tc.write("EN:" + varName + " " + delta); // subscribe to changes
                             tc.write("GET:" + varName); // request initial value
+                            LOGGER.trace("Enabled and GET: " + varName + " " + delta);
                         }
                     }
 
@@ -84,6 +94,7 @@ public class PlccomsClient {
                             return;
                         }
                         diffConsumer.accept(new PlccomsDiff(diffArgs[0], diffArgs[1]));
+                        LOGGER.trace("Received PLCComS: " +diffArgs[0]+" : "+diffArgs[1]);
                     } catch (Exception e) {
                         LOGGER.warn("Failed to process DIFF/GET command: {}", args, e);
                     }
