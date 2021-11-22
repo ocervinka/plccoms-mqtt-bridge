@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class PlcMqttBridge {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String DEFAULT_CONFIG = "/etc/plccoms-mqtt-bridge/config.yaml";
+    private static final String DEFAULT_CONFIG = "deploy/local/config.yaml";
 
     private final Config config;
     private final Mqtt mqttClient;
@@ -31,6 +31,8 @@ public class PlcMqttBridge {
 
     private final Map<String, VarMapping> varMappingsByTopic = new HashMap<>();
     private final Map<String, VarMapping> varMappingsByVariable = new HashMap<>();
+    private final Map<String, VarMapping> varMappingsByVariableEN = new HashMap<>();
+    private final Map<String, Collection<String>> varMappingsByVariableENGET = new HashMap<>();
 
 
     public static void main(String[] args) throws MqttException, IOException {
@@ -57,7 +59,7 @@ public class PlcMqttBridge {
     public PlcMqttBridge(Config config) {
         this.config = config;
         this.mqttClient = new Mqtt();
-        this.plccomsClient = new PlccomsClient(this::onList, this::onDiff, varMappingsByVariable);
+        this.plccomsClient = new PlccomsClient(this::onList, this::onDiff);
     }
 
     private void connect() throws MqttException {
@@ -70,7 +72,7 @@ public class PlcMqttBridge {
         plccomsClient.close();
     }
 
-    private Collection<String> onList(Collection<PlccomsVar> listedVars) {
+    private Map<String, Collection<String>> onList(Collection<PlccomsVar> listedVars) {
         int blacklistedCount = 0;
         Map<String, Integer> blacklistedCountByPattern = new HashMap<>();
         List<String> unmappedVars = new ArrayList<>();
@@ -90,7 +92,14 @@ public class PlcMqttBridge {
                 Matcher matcher = config.varPattern.matcher(var.name);
                 if (matcher.matches()) {
                     String topicName = config.stateTopic.format(getGroups(matcher));
-                    varMappingsByVariable.put(var.name, new VarMapping(config, topicName));
+                    String delta = config.varDelta == null ? null : config.varDelta.toPattern();
+                    varMappingsByVariable.put(var.name , new VarMapping(config, topicName));
+                    if (delta != null) {
+                        varMappingsByVariableEN.put(var.name + " " + delta, new VarMapping(config, topicName));
+                    }
+                    else {
+                        varMappingsByVariableEN.put(var.name , new VarMapping(config, topicName));
+                    }
                     LOGGER.info("State topic mapped:   {} {} -> {}", var.name, var.type, topicName);
                     if (config.cmdTopic != null) {
                         topicName = config.cmdTopic.format(getGroups(matcher));
@@ -130,7 +139,9 @@ public class PlcMqttBridge {
             LOGGER.error("Failed to subscribe to topic(s)", e);
         }
 
-        return new ArrayList<>(varMappingsByVariable.keySet());
+        varMappingsByVariableENGET.put("getList", new ArrayList<>(varMappingsByVariable.keySet()));
+        varMappingsByVariableENGET.put("enableList", new ArrayList<>(varMappingsByVariableEN.keySet()));
+        return varMappingsByVariableENGET;
     }
 
     private void onDiff(PlccomsDiff diff) {

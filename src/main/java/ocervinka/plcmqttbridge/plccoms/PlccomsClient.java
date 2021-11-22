@@ -2,9 +2,6 @@ package ocervinka.plcmqttbridge.plccoms;
 
 import ocervinka.plcmqttbridge.telnet.TelnetClient;
 import ocervinka.plcmqttbridge.telnet.TelnetClientListener;
-import ocervinka.plcmqttbridge.VarMapping;
-import ocervinka.plcmqttbridge.config.VarMappingConfig;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,17 +20,15 @@ public class PlccomsClient {
 
     private TelnetClient telnetClient;
 
-    private final Function<Collection<PlccomsVar>, Collection<String>> listConsumer;
+    private final Function<Collection<PlccomsVar>, Map<String, Collection<String>>> listConsumer;
     private final Consumer<PlccomsDiff> diffConsumer;
-    private final Map<String, VarMapping> varMappingsByVariable;
 
     private final Collection<PlccomsVar> vars = new ArrayList<>();
 
 
-    public PlccomsClient(Function<Collection<PlccomsVar>, Collection<String>> listConsumer, Consumer<PlccomsDiff> diffConsumer) {
+    public PlccomsClient(Function<Collection<PlccomsVar>, Map<String, Collection<String>>> listConsumer, Consumer<PlccomsDiff> diffConsumer) {
         this.listConsumer = listConsumer;
         this.diffConsumer = diffConsumer;
-        this.varMappingsByVariable = varMappingsByVariable;
     }
 
     public final void connect(PlccomsConfig config) {
@@ -75,15 +70,16 @@ public class PlccomsClient {
                         }
                     } else { // last line of LIST command has no arguments
                         listConsumer.apply(vars);
-                        Collection<String> varNamesToSubscribe = listConsumer.apply(vars);
-                        VarMapping varMapping;
-                        String delta;
-                        for (String varName : varNamesToSubscribe) {
-                            varMapping = varMappingsByVariable.get(varName);
-                            delta = varMapping.config.stateTopicDelta == null ? "" : varMapping.config.stateTopicDelta.toPattern();
-                            tc.write("EN:" + varName + " " + delta); // subscribe to changes
-                            tc.write("GET:" + varName); // request initial value
-                            LOGGER.trace("Enabled and GET: " + varName + " " + delta);
+                        Map<String, Collection<String>> varNamesToSubscribe = listConsumer.apply(vars);
+                        // Enable all variables
+                        for (String varNameEn : varNamesToSubscribe.get("enableList")) {
+                            tc.write("EN:" + varNameEn); // subscribe to changes
+                            LOGGER.trace("Enabled PLC variable: " + varNameEn);
+                        }
+                        // Initial GET of all values
+                        for (String varNameGet : varNamesToSubscribe.get("getList")) {
+                            tc.write("GET:" + varNameGet); // request initial value
+                            LOGGER.trace("GET value: " + varNameGet);
                         }
                     }
 
