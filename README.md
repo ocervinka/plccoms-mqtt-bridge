@@ -145,7 +145,7 @@ state-topic    | N/A (required) | MQTT topic used by `plccoms-mqtt-bridge` to pu
 state-function | Noop           | A function to convert value from PLC before it is published to topic (Noop, OneToOn, OnToOne)
 cmd-topic      | N/A            | MQTT topic `plccoms-mqtt-bridge` subscribes to and forwards messages to PLC. The topic name can include {index} to refer to (one-based) capturing group or {0} to refer to a full match.
 cmd-function   | Noop           | A function to convert value read from topic before it is sent to PLC. (Noop, OneToOn, OnToOne)
-delta          | N/A            | For numeric values sent from PLC. Only when value changes more than delta, PLC sends data.
+delta          | N/A            | Instructs `plccoms` to send updates of numerical values only if they change by more than delta. This can reduce network traffic (including MQTT) caused by e.g. some temperature sensors.
 log-level      | info           | Log4Jv2 log levels (info, debug, trace)
  
 ### Build and run locally
