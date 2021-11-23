@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class PlcMqttBridge {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String DEFAULT_CONFIG = "deploy/local/config.yaml";
+    private static final String DEFAULT_CONFIG = "/etc/plccoms-mqtt-bridge/config.yaml";
 
     private final Config config;
     private final Mqtt mqttClient;
