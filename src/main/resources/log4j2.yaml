@@ -15,6 +15,6 @@ Configutation:
         - ref: console_appender
     Logger:
       - name: ocervinka.plcmqttbridge
-        level: debug
+        level: info
       - name: org.apache.kafka
         level: info
