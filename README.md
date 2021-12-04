@@ -126,6 +126,8 @@ Field    | Default value  | Description
 scheme   | tcp            | tcp or tls 
 host     | localhost      | MQTT broker host name or IP
 port     | 1883 for tcp and 8883 fot tls | MQTT TCP port
+username | N/A            | optional parameter
+password | N/A            | optional parameter
 clientId | MQTT client id | random UUID 
  
 #### var-blacklist:
