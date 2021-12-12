@@ -13,12 +13,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import java.awt.desktop.SystemSleepEvent;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class PlcMqttBridge {
@@ -70,7 +70,7 @@ public class PlcMqttBridge {
         plccomsClient.close();
     }
 
-    private Collection<String> onList(Collection<PlccomsVar> listedVars) {
+    private Collection<PlccomsVar> onList(Collection<PlccomsVar> listedVars) {
         int blacklistedCount = 0;
         Map<String, Integer> blacklistedCountByPattern = new HashMap<>();
         List<String> unmappedVars = new ArrayList<>();
@@ -130,7 +130,9 @@ public class PlcMqttBridge {
             LOGGER.error("Failed to subscribe to topic(s)", e);
         }
 
-        return new ArrayList<>(varMappingsByVariable.keySet());
+        return varMappingsByVariable.entrySet().stream()
+                .map(e -> new PlccomsVar(e.getKey(), e.getValue().config.varDelta))
+                .collect(Collectors.toList());
     }
 
     private void onDiff(PlccomsDiff diff) {

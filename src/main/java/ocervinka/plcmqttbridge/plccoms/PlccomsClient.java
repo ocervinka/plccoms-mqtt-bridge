@@ -19,13 +19,13 @@ public class PlccomsClient {
 
     private TelnetClient telnetClient;
 
-    private final Function<Collection<PlccomsVar>, Collection<String>> listConsumer;
+    private final Function<Collection<PlccomsVar>, Collection<PlccomsVar>> listConsumer;
     private final Consumer<PlccomsDiff> diffConsumer;
 
     private final Collection<PlccomsVar> vars = new ArrayList<>();
 
 
-    public PlccomsClient(Function<Collection<PlccomsVar>, Collection<String>> listConsumer, Consumer<PlccomsDiff> diffConsumer) {
+    public PlccomsClient(Function<Collection<PlccomsVar>, Collection<PlccomsVar>> listConsumer, Consumer<PlccomsDiff> diffConsumer) {
         this.listConsumer = listConsumer;
         this.diffConsumer = diffConsumer;
     }
@@ -69,10 +69,16 @@ public class PlccomsClient {
                         }
                     } else { // last line of LIST command has no arguments
                         listConsumer.apply(vars);
-                        Collection<String> varNamesToSubscribe = listConsumer.apply(vars);
-                        for (String varName : varNamesToSubscribe) {
-                            tc.write("EN:" + varName); // subscribe to changes
-                            tc.write("GET:" + varName); // request initial value
+                        Collection<PlccomsVar> varsToSubscribe = listConsumer.apply(vars);
+                        for (PlccomsVar var : varsToSubscribe) {
+                            // subscribe to changes
+                            if (var.delta == null) {
+                                tc.write("EN:" + var.name);
+                            } else {
+                                tc.write("EN:" + var.name + " " + var.delta);
+                            }
+                            // request initial value
+                            tc.write("GET:" + var.name);
                         }
                     }
 
@@ -84,6 +90,7 @@ public class PlccomsClient {
                             return;
                         }
                         diffConsumer.accept(new PlccomsDiff(diffArgs[0], diffArgs[1]));
+                        LOGGER.trace("Received PLCComS: " +diffArgs[0]+" : "+diffArgs[1]);
                     } catch (Exception e) {
                         LOGGER.warn("Failed to process DIFF/GET command: {}", args, e);
                     }

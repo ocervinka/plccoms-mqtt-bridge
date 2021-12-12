@@ -21,6 +21,7 @@ public class VarMappingConfig {
     private static final Function<String, String> ON_TO_ONE = new OnToOne();
 
     public final Pattern varPattern;
+    public final Double varDelta;
     public final MessageFormat stateTopic;
     public final Function<String, String> stateFunction;
     public final MessageFormat cmdTopic;
@@ -30,6 +31,7 @@ public class VarMappingConfig {
     @JsonCreator
     public VarMappingConfig(
             @JsonProperty(value = "var", required = true) String var,
+            @JsonProperty("var-delta") Double varDelta,
             @JsonProperty(value = "state-topic", required = true) String stateTopic,
             @JsonProperty("state-function") String stateFunction,
             @JsonProperty("cmd-topic") String cmdTopic,
@@ -37,6 +39,7 @@ public class VarMappingConfig {
             @JsonProperty("log-level") String logLevel)
     {
         this.varPattern = Pattern.compile(var);
+        this.varDelta = varDelta;
         this.stateTopic = new MessageFormat(stateTopic);
         this.stateFunction = getFunction(stateFunction);
         this.cmdTopic = cmdTopic == null ? null : new MessageFormat(cmdTopic);
