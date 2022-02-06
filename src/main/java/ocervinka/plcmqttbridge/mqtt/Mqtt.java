@@ -3,6 +3,7 @@ package ocervinka.plcmqttbridge.mqtt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.util.Collection;
 
@@ -14,9 +15,16 @@ public class Mqtt {
 
 
     public void connect(MqttConfig config) throws MqttException {
-        client = new MqttClient(config.getUri(), config.clientId);
+        MemoryPersistence persistence = new MemoryPersistence(); // Added because of some warning during run init
+        client = new MqttClient(config.getUri(), config.clientId, persistence);
 
         MqttConnectOptions options = new MqttConnectOptions();
+        if (config.username != null) {
+            options.setUserName(config.username);
+        }
+        if (config.password != null) {
+            options.setPassword(config.password);
+        }
         options.setAutomaticReconnect(true);
         options.setCleanSession(true);
         options.setConnectionTimeout(10);
