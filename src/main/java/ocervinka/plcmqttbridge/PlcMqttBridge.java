@@ -112,6 +112,8 @@ public class PlcMqttBridge {
         LOGGER.info("Variables available for mapping: {}", listedVars.size() - blacklistedCount);
         LOGGER.info("Variables mapped to state topics: {}", varMappingsByVariable.size());
         LOGGER.info("Variables mapped from command topics: {}", varMappingsByTopic.size());
+        LOGGER.info("Mapping from command topics: {}", varMappingsByTopic.entrySet().stream()
+                .map(e -> e.getKey() + "->" + e.getValue().destination).collect(Collectors.joining(", ")));
         LOGGER.info("Unmapped variables: {}", unmappedVars.size());
         for (String unmappedVar : unmappedVars) {
             LOGGER.info("  {}", unmappedVar);
