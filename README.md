@@ -2,6 +2,12 @@
 
 ##### Bi-directional communication bridge between Teco's [PLCComS](https://www.tecomat.com/download/software-and-firmware/plccoms/) and [MQTT](https://en.wikipedia.org/wiki/MQTT) broker.
 
+> **Home Assistant users:** there is now also [ha-epsnet](https://github.com/ocervinka/ha-epsnet),
+> a native Home Assistant integration that talks to the PLC directly over EPSNET UDP — no PLCComS,
+> no MQTT broker, devices and entities are created automatically. I have been running it on my own
+> Foxtrot installation since August 2026. `plccoms-mqtt-bridge` remains the option for openHAB,
+> Node-RED and other MQTT consumers, and for PLC variables ha-epsnet does not map yet.
+
 `plccoms-mqtt-bridge` was written to integrate home automation
 hardware based on Tecomat
 [Foxtrot](https://www.tecomat.com/products/cat/cz/plc-tecomat-foxtrot-3/)
